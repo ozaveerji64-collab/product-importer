@@ -2,9 +2,6 @@
 
 A scalable web application for **bulk product import & management**, built as part of the SDE-1 assignment for **Fulfil**.
 
-### 🚀 Live Demo
-🔗 https://<your-render-web-url>
-(The app takes ~20 seconds to cold-start on free tier)
 
 ---
 
