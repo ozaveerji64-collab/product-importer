@@ -3,7 +3,7 @@ services:
     name: product-importer-web
     env: docker
     plan: free
-    repo: https://github.com/<YOUR_GITHUB_USERNAME>/product-importer-fastapi
+    repo: https://github.com/ozaveerji64-collab/product-importer
     dockerfilePath: Dockerfile
     envVars:
       - key: DATABASE_URL
@@ -19,12 +19,13 @@ services:
       - key: RESULT_BACKEND
         value: redis://product-importer-redis:6379/2
     autoDeploy: true
+    healthCheckPath: "/"
 
   - type: worker
     name: product-importer-worker
     env: docker
     plan: free
-    repo: https://github.com/<YOUR_GITHUB_USERNAME>/product-importer-fastapi
+    repo: https://github.com/ozaveerji64-collab/product-importer
     dockerfilePath: Dockerfile.worker
     envVars:
       - key: DATABASE_URL
