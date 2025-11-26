@@ -9,13 +9,32 @@ import redis
 
 load_dotenv()
 
-BROKER_URL = os.environ.get("BROKER_URL", "redis://redis:6379/1")
-RESULT_BACKEND = os.environ.get("RESULT_BACKEND", "redis://redis:6379/2")
-REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+BROKER_URL = os.environ.get("BROKER_URL")
+RESULT_BACKEND = os.environ.get("RESULT_BACKEND")
 
-celery_app = Celery("tasks", broker=BROKER_URL, backend=RESULT_BACKEND)
+if not BROKER_URL or not RESULT_BACKEND:
+    raise RuntimeError("BROKER_URL or RESULT_BACKEND not configured")
 
-r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+celery_app = Celery(
+    "app.tasks",
+    broker=BROKER_URL,
+    backend=RESULT_BACKEND,
+)
+
+celery_app.conf.update(
+    broker_connection_retry_on_startup=True,
+    broker_use_ssl=True,
+    redis_backend_use_ssl=True,
+    task_serializer="json",
+    result_serializer="json"
+)
+
+# Upstash support for Redis
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    r = redis.Redis.from_url(REDIS_URL, decode_responses=True, ssl=True)
+else:
+    r = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
 
 
 def set_progress(task_id: str, percent: int, status: str, meta=None):

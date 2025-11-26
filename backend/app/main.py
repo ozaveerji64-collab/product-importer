@@ -29,8 +29,17 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Product Importer")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
-r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+# ---- Redis Connection (Upstash compatible) ----
+REDIS_URL = os.environ.get("REDIS_URL")
+if not REDIS_URL:
+    raise RuntimeError("REDIS_URL is not configured")
+
+# Upstash requires SSL
+r = redis.Redis.from_url(
+    REDIS_URL,
+    decode_responses=True,
+    ssl=True
+)
 
 
 def get_db():
