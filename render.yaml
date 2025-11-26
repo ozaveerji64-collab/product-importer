@@ -42,11 +42,10 @@ services:
         value: redis://product-importer-redis:6379/2
     autoDeploy: true
 
-databases:
-  - name: product-importer-db
-    plan: free
-
-services:
   - type: redis
     name: product-importer-redis
+    plan: free
+
+databases:
+  - name: product-importer-db
     plan: free
