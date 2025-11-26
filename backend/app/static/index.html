@@ -1,0 +1,864 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Product Importer Demo</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #60a5fa;
+      --danger: #dc2626;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: radial-gradient(circle at top left, #e0f2fe, #f9fafb);
+      color: var(--text-main);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-header small {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    select {
+      font: inherit;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+    }
+
+    input[type="text"] {
+      width: 100%;
+    }
+
+    button {
+      font: inherit;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.1s ease;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    button.primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .progress {
+      width: 100%;
+      background: #e5e7eb;
+      height: 20px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-light), var(--primary));
+      color: #fff;
+      padding: 0 8px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      white-space: nowrap;
+      transition: width 0.15s linear;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .status-line {
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .status-line.ok {
+      color: #15803d;
+    }
+
+    .status-line.error {
+      color: var(--danger);
+    }
+
+    pre {
+      margin: 0;
+      padding: 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: flex-end;
+    }
+
+    .filters-row label {
+      flex: 1 1 120px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 6px 4px;
+      text-align: left;
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: inline-block;
+    }
+
+    .pill-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .pill-error {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .pill-muted {
+      background: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-header">
+      <div>
+        <h1>Product Importer</h1>
+        <div class="small">Async CSV import &amp; management demo</div>
+      </div>
+      <span class="badge">FastAPI · Celery · Postgres · Redis</span>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Upload + Products -->
+      <div class="stacked">
+        <!-- Upload card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Upload CSV</h2>
+            <small>Up to 500,000 products</small>
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:10px;">
+            <label>
+              CSV file
+              <input type="file" id="csvfile" accept=".csv" />
+            </label>
+            <label>
+              Active default
+              <select id="defaultActive">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </label>
+            <button id="uploadBtn" class="primary">Upload</button>
+          </div>
+
+          <div class="progress">
+            <div id="bar">0%</div>
+          </div>
+          <div id="statusLine" class="status-line small"></div>
+          <pre id="statusMeta" class="small"></pre>
+        </div>
+
+        <!-- Products card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Products</h2>
+            <div style="display:flex; gap:8px;">
+              <button id="refreshProducts" class="secondary">Refresh</button>
+              <button id="deleteAll" class="danger">Delete All</button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-row">
+            <label>
+              SKU
+              <input id="filterSku" type="text" placeholder="Filter by SKU" />
+            </label>
+            <label>
+              Name
+              <input id="filterName" type="text" placeholder="Filter by name" />
+            </label>
+            <label>
+              Active status
+              <select id="filterActive">
+                <option value="">Any</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </label>
+            <button id="applyFilters" class="secondary">Apply</button>
+          </div>
+
+          <!-- Create new product -->
+          <div class="filters-row" style="border-top:1px solid var(--border); padding-top:8px; margin-top:6px;">
+            <label>
+              SKU
+              <input id="newSku" type="text" placeholder="NEW001" />
+            </label>
+            <label>
+              Name
+              <input id="newName" type="text" placeholder="New product" />
+            </label>
+            <label>
+              Price
+              <input id="newPrice" type="text" placeholder="9.99" />
+            </label>
+            <label>
+              Description
+              <input id="newDescription" type="text" placeholder="Optional description" />
+            </label>
+            <label>
+              Active
+              <select id="newActive">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </label>
+            <button id="createProductBtn" class="primary">Create</button>
+          </div>
+
+          <!-- Products table -->
+          <div id="products"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Webhooks -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Webhooks</h2>
+          <small>Configure &amp; test callbacks</small>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+          <label>
+            Webhook URL
+            <input id="whUrl" type="text" placeholder="https://example.com/hook" />
+          </label>
+          <label>
+            Events (JSON array)
+            <input id="whEvents" type="text" value='["product_imported"]' />
+          </label>
+          <div style="display:flex; gap:8px;">
+            <button id="addWh" class="primary">Add Webhook</button>
+            <button id="reloadWh" class="secondary">Reload</button>
+          </div>
+          <div id="whTestResult" class="small"></div>
+        </div>
+
+        <div id="webhooks"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+async function fetchJSON(url, opts) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// ---------- Upload & progress ----------
+
+const uploadBtn = document.getElementById("uploadBtn");
+const bar = document.getElementById("bar");
+const statusLine = document.getElementById("statusLine");
+const statusMeta = document.getElementById("statusMeta");
+
+function resetProgress() {
+  bar.style.width = "0%";
+  bar.textContent = "0%";
+  statusLine.textContent = "";
+  statusLine.className = "status-line small";
+  statusMeta.textContent = "";
+}
+
+uploadBtn.onclick = async () => {
+  const fileInput = document.getElementById("csvfile");
+  const f = fileInput.files[0];
+  if (!f) {
+    alert("Please choose a CSV file.");
+    return;
+  }
+
+  resetProgress();
+  uploadBtn.disabled = true;
+  statusLine.textContent = "Uploading...";
+  statusLine.className = "status-line small";
+
+  const active = document.getElementById("defaultActive").value === "true";
+  const fd = new FormData();
+  fd.append("file", f);
+  fd.append("active", active);
+
+  try {
+    const res = await fetch("/upload", { method: "POST", body: fd });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Upload failed: ${text}`);
+    }
+    const data = await res.json();
+    const taskId = data.task_id;
+    listenProgress(taskId);
+  } catch (err) {
+    console.error(err);
+    statusLine.textContent = String(err.message || err);
+    statusLine.className = "status-line small error";
+    uploadBtn.disabled = false;
+  }
+};
+
+function listenProgress(taskId) {
+  const es = new EventSource(`/sse/progress/${taskId}`);
+
+  es.onmessage = (e) => {
+    let obj = {};
+    try {
+      obj = JSON.parse(e.data || "{}");
+    } catch (err) {
+      console.error("Bad SSE data", err, e.data);
+      return;
+    }
+
+    const percent = obj.percent ?? 0;
+    const status = obj.status || "pending";
+
+    bar.style.width = percent + "%";
+    bar.textContent = `${status} ${percent}%`;
+
+    if (obj.meta) {
+      statusMeta.textContent = JSON.stringify(obj.meta, null, 2);
+    }
+
+    if (status === "error") {
+      es.close();
+      statusLine.textContent = "Upload failed";
+      statusLine.className = "status-line small error";
+
+      if (obj.meta && obj.meta.detail) {
+        alert("Upload failed: " + obj.meta.detail);
+      } else {
+        alert("Upload failed. See logs for details.");
+      }
+
+      uploadBtn.disabled = false;
+      return;
+    }
+
+    if (status === "done" && percent >= 100) {
+      es.close();
+      statusLine.textContent = "Import complete";
+      statusLine.className = "status-line small ok";
+      uploadBtn.disabled = false;
+      loadProducts();
+      return;
+    }
+  };
+
+  es.onerror = (e) => {
+    console.error("SSE error", e);
+    es.close();
+    statusLine.textContent = "Lost connection to progress stream.";
+    statusLine.className = "status-line small error";
+    uploadBtn.disabled = false;
+  };
+}
+
+// ---------- Products UI (Story 2 + 3) ----------
+
+const productState = {
+  page: 1,
+  pageSize: 20,
+  sku: "",
+  name: "",
+  active: "",
+};
+const productCache = {};
+
+async function loadProducts() {
+  const params = new URLSearchParams();
+  params.set("page", productState.page);
+  params.set("page_size", productState.pageSize);
+  if (productState.sku) params.set("sku", productState.sku);
+  if (productState.name) params.set("name", productState.name);
+  if (productState.active === "true") params.set("active", "true");
+  if (productState.active === "false") params.set("active", "false");
+
+  try {
+    const data = await fetchJSON(`/api/products?${params.toString()}`);
+    renderProducts(data);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load products: " + err.message);
+  }
+}
+
+function renderProducts(data) {
+  const div = document.getElementById("products");
+  const items = data.items || [];
+  productCache.clear;
+  for (const it of items) {
+    productCache[it.id] = it;
+  }
+
+  if (!items.length) {
+    div.innerHTML = "<div class='small'>No products found.</div>";
+  } else {
+    let html = "<table><thead><tr>";
+    html += "<th>ID</th><th>SKU</th><th>Name</th><th>Price</th><th>Active</th><th>Description</th><th>Actions</th>";
+    html += "</tr></thead><tbody>";
+    for (const p of items) {
+      html += `<tr>
+        <td>${p.id}</td>
+        <td>${p.sku}</td>
+        <td>${p.name}</td>
+        <td>${p.price}</td>
+        <td>${p.active ? "<span class='pill pill-success'>Active</span>" : "<span class='pill pill-muted'>Inactive</span>"}</td>
+        <td>${p.description ?? ""}</td>
+        <td>
+          <div class="inline-actions">
+            <button class="secondary" onclick="editProduct(${p.id})">Edit</button>
+            <button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }
+    html += "</tbody></table>";
+
+    const total = data.total ?? items.length;
+    const page = data.page ?? 1;
+    const pageSize = data.page_size ?? productState.pageSize;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    html += `
+      <div class="pagination">
+        <div class="small">Total: ${total} • Page ${page} of ${totalPages}</div>
+        <div style="display:flex; gap:6px;">
+          <button class="secondary" onclick="prevPage()" ${page <= 1 ? "disabled" : ""}>Prev</button>
+          <button class="secondary" onclick="nextPage(${totalPages})" ${page >= totalPages ? "disabled" : ""}>Next</button>
+        </div>
+      </div>
+      <div class="small" style="margin-top:4px;">Raw JSON:</div>
+      <pre>${JSON.stringify(data, null, 2)}</pre>
+    `;
+    div.innerHTML = html;
+  }
+}
+
+window.prevPage = function () {
+  if (productState.page > 1) {
+    productState.page -= 1;
+    loadProducts();
+  }
+};
+
+window.nextPage = function (maxPages) {
+  if (productState.page < maxPages) {
+    productState.page += 1;
+    loadProducts();
+  }
+};
+
+document.getElementById("applyFilters").onclick = () => {
+  productState.sku = document.getElementById("filterSku").value.trim();
+  productState.name = document.getElementById("filterName").value.trim();
+  productState.active = document.getElementById("filterActive").value;
+  productState.page = 1;
+  loadProducts();
+};
+
+document.getElementById("refreshProducts").onclick = () => {
+  loadProducts();
+};
+
+document.getElementById("deleteAll").onclick = async () => {
+  if (!confirm("Are you sure? This cannot be undone.")) return;
+  try {
+    const data = await fetchJSON("/api/products", { method: "DELETE" });
+    alert("Deleted: " + (data.deleted ?? "OK"));
+    productState.page = 1;
+    loadProducts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete: " + err.message);
+  }
+};
+
+document.getElementById("createProductBtn").onclick = async () => {
+  const sku = document.getElementById("newSku").value.trim();
+  const name = document.getElementById("newName").value.trim();
+  const price = document.getElementById("newPrice").value.trim();
+  const description = document.getElementById("newDescription").value.trim();
+  const active = document.getElementById("newActive").value === "true";
+
+  if (!sku || !name) {
+    alert("SKU and Name are required.");
+    return;
+  }
+
+  try {
+    await fetchJSON("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sku,
+        name,
+        description,
+        price,
+        active,
+      }),
+    });
+    document.getElementById("newSku").value = "";
+    document.getElementById("newName").value = "";
+    document.getElementById("newPrice").value = "";
+    document.getElementById("newDescription").value = "";
+    document.getElementById("newActive").value = "true";
+    loadProducts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create product: " + err.message);
+  }
+};
+
+window.editProduct = async function (id) {
+  const current = productCache[id];
+  if (!current) return;
+
+  const name = prompt("Name:", current.name ?? "");
+  if (name === null) return;
+  const price = prompt("Price:", current.price ?? "");
+  if (price === null) return;
+  const description = prompt("Description:", current.description ?? "");
+  if (description === null) return;
+  const activeStr = prompt("Active? (true/false):", current.active ? "true" : "false");
+  if (activeStr === null) return;
+  const active = activeStr.toLowerCase() === "true";
+
+  try {
+    await fetchJSON(`/api/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        price,
+        description,
+        active,
+      }),
+    });
+    loadProducts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update product: " + err.message);
+  }
+};
+
+window.deleteProduct = async function (id) {
+  if (!confirm("Delete this product?")) return;
+  try {
+    await fetchJSON(`/api/products/${id}`, { method: "DELETE" });
+    loadProducts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete product: " + err.message);
+  }
+};
+
+// ---------- Webhooks UI (Story 4) ----------
+
+const webhookCache = {};
+const whTestResult = document.getElementById("whTestResult");
+
+async function listWebhooks() {
+  try {
+    const data = await fetchJSON("/api/webhooks");
+    renderWebhooks(data);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load webhooks: " + err.message);
+  }
+}
+
+function renderWebhooks(rows) {
+  const div = document.getElementById("webhooks");
+  webhookCache.clear;
+  for (const r of rows) {
+    webhookCache[r.id] = r;
+  }
+
+  if (!rows.length) {
+    div.innerHTML = "<div class='small'>No webhooks configured yet.</div>";
+    return;
+  }
+
+  let html = "<table><thead><tr>";
+  html += "<th>ID</th><th>URL</th><th>Events</th><th>Status</th><th>Actions</th>";
+  html += "</tr></thead><tbody>";
+
+  for (const w of rows) {
+    html += `<tr>
+      <td>${w.id}</td>
+      <td>${w.url}</td>
+      <td>${(w.events || []).join(", ")}</td>
+      <td>${w.enabled ? "<span class='pill pill-success'>Enabled</span>" : "<span class='pill pill-muted'>Disabled</span>"}</td>
+      <td>
+        <div class="inline-actions">
+          <button class="secondary" onclick="toggleWebhook(${w.id}, ${!w.enabled})">${w.enabled ? "Disable" : "Enable"}</button>
+          <button class="secondary" onclick="testWebhook(${w.id})">Test</button>
+          <button class="danger" onclick="deleteWebhook(${w.id})">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  html += "</tbody></table>";
+  div.innerHTML = html;
+}
+
+document.getElementById("addWh").onclick = async () => {
+  const url = (document.getElementById("whUrl").value || "").trim();
+  if (!url) {
+    alert("Webhook URL is required.");
+    return;
+  }
+
+  let events = [];
+  try {
+    events = JSON.parse(document.getElementById("whEvents").value);
+  } catch (e) {
+    alert('Events must be valid JSON (e.g. ["product_imported"]).');
+    return;
+  }
+
+  try {
+    await fetchJSON("/api/webhooks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, events, enabled: true }),
+    });
+    document.getElementById("whUrl").value = "";
+    whTestResult.textContent = "";
+    listWebhooks();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save webhook: " + err.message);
+  }
+};
+
+document.getElementById("reloadWh").onclick = () => {
+  whTestResult.textContent = "";
+  listWebhooks();
+};
+
+window.toggleWebhook = async function (id, enabled) {
+  try {
+    await fetchJSON(`/api/webhooks/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled }),
+    });
+    listWebhooks();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update webhook: " + err.message);
+  }
+};
+
+window.deleteWebhook = async function (id) {
+  if (!confirm("Delete this webhook?")) return;
+  try {
+    await fetchJSON(`/api/webhooks/${id}`, { method: "DELETE" });
+    listWebhooks();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete webhook: " + err.message);
+  }
+};
+
+window.testWebhook = async function (id) {
+  whTestResult.textContent = "Testing webhook #" + id + "...";
+  try {
+    const data = await fetchJSON(`/api/webhooks/test/${id}`, { method: "POST" });
+    whTestResult.textContent =
+      `Test OK: HTTP ${data.response_code} in ${data.response_time_ms} ms`;
+    whTestResult.className = "small";
+  } catch (err) {
+    console.error(err);
+    whTestResult.textContent = "Test failed: " + err.message;
+    whTestResult.className = "small status-line error";
+  }
+};
+
+// ---------- Initial load ----------
+
+listWebhooks();
+loadProducts();
+</script>
+</body>
+</html>

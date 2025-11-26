@@ -1,0 +1,4 @@
+sku,name,description,price
+SKU001,Product 1,First test product,9.99
+SKU002,Product 2,Second test product,19.99
+sku001,Product 1 updated,Duplicate should update,11.99

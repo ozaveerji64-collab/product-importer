@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: product-importer-web
+    env: docker
+    plan: free
+    repo: https://github.com/<YOUR_GITHUB_USERNAME>/product-importer-fastapi
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-importer-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: product-importer-redis
+          property: connectionString
+      - key: BROKER_URL
+        value: redis://product-importer-redis:6379/1
+      - key: RESULT_BACKEND
+        value: redis://product-importer-redis:6379/2
+    autoDeploy: true
+
+  - type: worker
+    name: product-importer-worker
+    env: docker
+    plan: free
+    repo: https://github.com/<YOUR_GITHUB_USERNAME>/product-importer-fastapi
+    dockerfilePath: Dockerfile.worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: product-importer-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: product-importer-redis
+          property: connectionString
+      - key: BROKER_URL
+        value: redis://product-importer-redis:6379/1
+      - key: RESULT_BACKEND
+        value: redis://product-importer-redis:6379/2
+    autoDeploy: true
+
+databases:
+  - name: product-importer-db
+    plan: free
+
+services:
+  - type: redis
+    name: product-importer-redis
+    plan: free
